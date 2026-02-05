@@ -1,45 +1,27 @@
 import { Handle, Position, type NodeProps, type Node as FlowNode } from '@xyflow/react';
 
-export interface SceneNodeData {
-  title: string;
-  content?: string;
+export interface ProcessNodeData {
+  label: string;
 }
 
-export type SceneNode = FlowNode & {
-  data: SceneNodeData;
-  type: 'scene';
+export type ProcessNode = FlowNode & {
+  type: 'process';
 };
 
-const SceneNode = ({ data }: NodeProps<SceneNode>) => {
-  const hasContent = !!data.content && data.content.trim() !== "";
-
+const ProcessNode = (_props: NodeProps<ProcessNode>) => {
   return (
-    <div className="molic-node scene">
+    <div className="molic-node process">
       <Handle type="target" position={Position.Top} id="t" />
       <Handle type="target" position={Position.Bottom} id="b" />
       <Handle type="target" position={Position.Left} id="l" />
       <Handle type="target" position={Position.Right} id="r" />
 
-      <div className="node-header">
-        <strong>{data.title}</strong>
-      </div>
-      
-      {hasContent && (
-        <>
-          <div className="node-divider"></div>
-          <div className="node-content">
-            {data.content}
-          </div>
-        </>
-      )}
-
       <Handle type="source" position={Position.Top} id="st" />
       <Handle type="source" position={Position.Bottom} id="sb" />
       <Handle type="source" position={Position.Left} id="sl" />
       <Handle type="source" position={Position.Right} id="sr" />
-      
     </div>
   );
 };
 
-export default SceneNode;
+export default ProcessNode;

@@ -1,6 +1,6 @@
 // import { useState } from 'react'
 import { useEffect } from 'react';
-import { ReactFlow, Background, Controls, type NodeTypes } from '@xyflow/react';
+import { ReactFlow, Background, BackgroundVariant, ConnectionMode, Controls, type NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import './App.css'
 import Editor from './components/editor'
@@ -8,10 +8,12 @@ import { useStore, type Theme } from './stores/useStore';
 import { parseMolic } from './parser/molicParser';
 import SceneNode from './components/nodes/SceneNode';
 import UbiqNode from './components/nodes/UbiqNode';
+import ProcessNode from './components/nodes/ProccessNode';
 
 const nodeTypes: NodeTypes = {
   scene: SceneNode,
   ubiq: UbiqNode,
+  process: ProcessNode,
 };
 
 function App() {
@@ -66,6 +68,7 @@ function App() {
       </aside>
       <section className="canvas-panel">
           <ReactFlow
+            connectionMode={ConnectionMode.Loose}
             nodes={nodes}
             edges={edges}
             colorMode={activeColorMode}
@@ -76,7 +79,12 @@ function App() {
             snapGrid={[12, 12]}
             fitView
           >
-            <Background />
+            <Background 
+              id="1" 
+              gap={12}  
+              size={1} 
+              variant={BackgroundVariant.Cross}
+            />
             <Controls />
           </ReactFlow>
         </section>
