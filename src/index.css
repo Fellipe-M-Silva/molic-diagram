@@ -1,36 +1,142 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+	font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+	color-scheme: light;
+	background-color: var(--color-background);
+	color: var(--color-text);
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
+:root.light {
+	--color-bg: oklch(0.993 0 0);
+	--color-bg-alt: oklch(0.982 0 0);
+	--color-text: oklch(0.162 0 0);
+	--color-text-alt: oklch(0.195 0 0);
+	--color-border: oklch(0.918 0 0);
+}
+
+:root.dark {
+	--color-bg: oklch(0.162 0 0);
+	--color-bg-alt: oklch(0.195 0 0);
+	--color-text: oklch(0.982 0 0);
+	--color-text-alt: oklch(0.94 0 0);
+	--color-border: oklch(0.302 0 0);
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
+#root {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 
+header {
+	background-color: var(--color-bg-alt);
+	color: var(--color-text);
+	padding: 1rem 2rem;
+	border-bottom: 1px solid var(--color-border);
+	display: flex;
+	align-items: center;
+	font-size: 1.25rem;
+	font-weight: 600;
+}
 
-.title {
-	@apply mx-auto text-3xl font-bold;
+.theme-switcher {
+	margin-left: auto; /* Joga para a direita */
+	display: flex;
+	gap: 0.5rem;
+}
+
+.theme-switcher button {
+	background: none;
+	border: 1px solid var(--color-border);
+	color: var(--color-text-alt);
+	padding: 0.25rem 0.75rem;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 0.75rem;
+}
+
+.theme-switcher button.active {
+	background-color: var(--color-text);
+	color: var(--color-bg);
+	border-color: var(--color-text);
+}
+
+.main-content {
+	display: flex;
+	flex: 1;
+	width: 100%;
+	overflow: hidden;
+}
+
+.editor-panel {
+	width: 400px;
+	height: 100%;
+	border-right: 1px solid var(--color-border);
+	flex-shrink: 0;
+}
+
+/* ELEMENTOS DA MoLIC */
+.molic-node {
+	padding: 12px 20px;
+	border-radius: 6px;
+	background-color: var(--color-bg);
+	border: 2px solid var(--color-border);
+	min-width: 120px;
+	text-align: center;
+	transition: box-shadow 0.2s ease;
+}
+
+.molic-node.scene {
+	border-color: var(--color-text);
+}
+.molic-node.ubiq {
+	background-color: var(--color-bg-alt);
+	border-radius: 50px;
+	padding: 8px 16px;
+	min-width: 80px;
+}
+
+.molic-node:hover {
+	box-shadow: 0 0 0 3px oklch(80% 0.1 220 / 20%);
+}
+
+.node-label {
+	font-size: 0.85rem;
+	color: var(--color-text);
+}
+
+.react-flow__handle {
+	width: 8px;
+	height: 8px;
+	background-color: var(--color-border);
+	border: 2px solid white;
+}
+
+.canvas-panel {
+	flex: 1;
+	height: 100%;
+	position: relative;
+	background-color: var(--color-bg);
+}
+
+.react-flow {
+	width: 100%;
+	height: 100%;
 }
