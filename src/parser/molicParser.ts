@@ -63,7 +63,28 @@ export const parseMolic = (code: string) => {
 				type: MarkerType.ArrowClosed,
 				color: "var(--color-text)",
 			},
-			style: { stroke: "var(--color-text)", strokeWidth: 2 },
+			style: { stroke: "var(--color-text)", strokeWidth: 1 },
+		});
+	}
+
+	const recoveryRegex = /(\w+)\s*->>\s*(\w+)\s*{\s*label:\s*"([^"]+)"\s*}/g;
+
+	while ((match = recoveryRegex.exec(code)) !== null) {
+		const [_, source, target, label] = match;
+		edges.push({
+			id: `e-rec-${source}-${target}`,
+			source,
+			target,
+			label,
+			style: {
+				stroke: "var(--color-border-alt)",
+				strokeWidth: 1,
+				strokeDasharray: "5,5", 
+			},
+			markerEnd: {
+				type: MarkerType.ArrowClosed,
+				color: "var(--color-border-alt)",
+			},
 		});
 	}
 

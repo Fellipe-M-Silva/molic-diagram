@@ -15,6 +15,7 @@
 	--color-text: oklch(0.162 0 0);
 	--color-text-alt: oklch(0.195 0 0);
 	--color-border: oklch(0.918 0 0);
+	--color-border-alt: oklch(0.649 0 0);
 }
 
 :root.dark {
@@ -24,6 +25,7 @@
 	--color-text: oklch(0.982 0 0);
 	--color-text-alt: oklch(0.94 0 0);
 	--color-border: oklch(0.302 0 0);
+	--color-border-alt: oklch(0.649 0 0);
 }
 
 *,
@@ -105,7 +107,7 @@ header {
 
 .molic-node.scene {
 	min-width: 120px;
-  max-width: 240px;
+	max-width: 240px;
 	min-height: 48px;
 	display: flex;
 	flex-direction: column;
