@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { ReactFlow, Background, BackgroundVariant, ConnectionMode, Controls, type NodeTypes, useNodesState, useEdgesState, type Node, type Edge, type ColorMode } from '@xyflow/react';
+import { ReactFlow, Background, BackgroundVariant, ConnectionMode, Controls, type NodeTypes, useNodesState, useEdgesState, type Node, type Edge, type ColorMode, ReactFlowProvider } from '@xyflow/react';
+import { DesktopIcon, MoonIcon, SunIcon } from '@phosphor-icons/react';
 import '@xyflow/react/dist/style.css';
 import './App.css'
 import Editor from './components/editor'
@@ -8,6 +9,7 @@ import { parseMolic } from './parser/molicParser';
 import SceneNode from './components/nodes/SceneNode';
 import UbiqNode from './components/nodes/UbiqNode';
 import ProcessNode from './components/nodes/ProcessNode';
+import Toolbar from './components/toolbar';
 
 const nodeTypes: NodeTypes = {
   scene: SceneNode,
@@ -20,6 +22,12 @@ function App() {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   
   const { theme, code, setCode, setTheme } = useStore();
+
+  const themeIcons = {
+  light: <SunIcon size={16} weight={theme === 'light' ? "fill" : "bold"} />,
+  dark: <MoonIcon size={16} weight={theme === 'dark' ? "fill" : "bold"} />,
+  system: <DesktopIcon size={16} weight={theme === 'system' ? "fill" : "bold"} />,
+  };
 
   const activeColorMode = (
   theme === 'system' 
@@ -55,7 +63,8 @@ function App() {
   };
 
   return (
-    <>
+    <ReactFlowProvider>
+      <div className="app-container">
       <header>
         <h6>MoLIC.dg</h6>
         <div className="theme-switcher">
@@ -63,12 +72,14 @@ function App() {
             <button 
               key={t}
               onClick={() => setTheme(t)}
-              className={theme === t ? 'active' : ''}
+              className={`icon-btn ${theme === t ? 'active' : ''}`}
+              title={t.charAt(0).toUpperCase() + t.slice(1)} // Tooltip nativa
             >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
+              {themeIcons[t]}
             </button>
           ))}
         </div>
+        <Toolbar />
       </header>
       <main className="main-content">
 
@@ -100,8 +111,9 @@ function App() {
             <Controls />
           </ReactFlow>
         </section>
-      </main>
-    </>
+        </main>
+      </div>    
+    </ReactFlowProvider>
   )
 }
 
