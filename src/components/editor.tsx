@@ -1,5 +1,7 @@
 import { Editor as MonacoEditor } from '@monaco-editor/react';
 import { useStore } from '../stores/useStore';
+import { molicLanguageDef, molicThemeDef } from '../language/molic';
+import { molicSnippets } from '../language/snippets';
 
 interface EditorProps {
   onChange: (value: string | undefined) => void;
@@ -17,10 +19,29 @@ const Editor = ({ onChange }: EditorProps) => {
     return theme === 'dark' ? 'vs-dark' : 'light';
   };
 
+  const handleBeforeMount = (monaco: any) => {
+    // 1. Registra a ID da linguagem
+    monaco.languages.register({ id: 'molic' });
+
+    // 2. Define as regras de cores
+    monaco.languages.setMonarchTokensProvider('molic', molicLanguageDef);
+
+    // 3. Define o tema visual
+    monaco.editor.defineTheme('molic-theme', molicThemeDef);
+
+    // 4. Registra os snippets
+    monaco.languages.registerCompletionItemProvider('molic', {
+      provideCompletionItems: () => ({
+        suggestions: molicSnippets(monaco)
+      })
+    });
+  };
+
   return (
     <MonacoEditor
       height="100%"
-      defaultLanguage="javascript" //a mudar para molic
+      defaultLanguage="molic"
+      beforeMount={handleBeforeMount}
       value={code}
       theme={getEditorTheme()}
       onChange={(value) => setCode(value || '')}
@@ -30,6 +51,9 @@ const Editor = ({ onChange }: EditorProps) => {
         lineNumbers: 'on',
         scrollBeyondLastLine: false,
         automaticLayout: true,
+        wordWrap: 'on', 
+        wrappingStrategy: 'advanced',
+        wrappingIndent: 'indent',
       }}
     />
   );
