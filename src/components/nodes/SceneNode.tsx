@@ -1,13 +1,18 @@
 import { Handle, Position, type NodeProps, type Node as FlowNode } from '@xyflow/react';
 
-export interface SceneNodeData {
+export interface SceneItem {
   title: string;
-  details?: {
+  precond?: string | null;
+  dialogs: {
     u?: string;
     d?: string;
     du?: string;
-    precond?: string;
   };
+}
+
+export interface SceneNodeData {
+  title: string;
+  items?: SceneItem[]; 
 }
 
 export type SceneNode = FlowNode & {
@@ -16,11 +21,11 @@ export type SceneNode = FlowNode & {
 };
 
 const SceneNode = ({ data }: NodeProps<SceneNode>) => {
-  const { title, details } = data;
-  const hasDetails = details && Object.keys(details).length > 0;
+  const { title, items } = data;
+  const hasItems = items && items.length > 0;
 
   return (
-    <div className={`molic-node scene ${hasDetails ? 'with-content' : ''}`}>
+    <div className={`molic-node scene ${hasItems ? 'with-content' : ''}`}>
       <Handle type="target" position={Position.Top} id="t" />
       <Handle type="target" position={Position.Bottom} id="b" />
       <Handle type="target" position={Position.Left} id="l" />
@@ -30,17 +35,28 @@ const SceneNode = ({ data }: NodeProps<SceneNode>) => {
         <strong>{title}</strong>
       </div>
       
-      {hasDetails && (
+      {hasItems &&
         <>
-          <div className="node-divider"></div>
-          <div className="node-content">
-            {details.precond && <div className="detail-item"><em>({details.precond})</em></div>}
-            {details.u && <div className="detail-item"><strong>u:</strong> {details.u}</div>}
-            {details.d && <div className="detail-item"><strong>d:</strong> {details.d}</div>}
-            {details.du && <div className="detail-item"><strong>du:</strong> {details.du}</div>}
+      <div className="node-divider" style={{ borderBottom: '1px solid #ccc' }} />
+      
+      <div className="node-content">
+        {data.items?.map((item, idx) => (
+          <div key={idx} className="scene-item">
+            <div className="item-title-row">
+              <span className="item-action">{item.title}</span>
+              {item.precond && <span className="precond-chip">Pré-condição: {item.precond}</span>}
+            </div>
+            
+            <div className="item-dialogs">
+              {item.dialogs.d && <div className="line"><strong>d:</strong> {item.dialogs.d}</div>}
+              {item.dialogs.u && <div className="line"><strong>u:</strong> {item.dialogs.u}</div>}
+              {item.dialogs.du && <div className="line"><strong>d+u:</strong> {item.dialogs.du}</div>}
+            </div>
           </div>
+        ))}
+        </div>
         </>
-      )}
+      }
 
       <Handle type="source" position={Position.Top} id="st" />
       <Handle type="source" position={Position.Bottom} id="sb" />

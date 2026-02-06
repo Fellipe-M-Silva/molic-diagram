@@ -1,8 +1,5 @@
-import {
-	type Node as FlowNode,
-	type Edge,
-	MarkerType,
-} from "@xyflow/react";
+import { type Node as FlowNode, type Edge, MarkerType } from "@xyflow/react";
+import type { SceneItem } from "../components/nodes/SceneNode";
 
 export const parseMolic = (code: string, existingNodes: FlowNode[] = []) => {
 	const nodes: FlowNode[] = [];
@@ -61,26 +58,45 @@ export const parseMolic = (code: string, existingNodes: FlowNode[] = []) => {
 
 	// --- 2. CENAS (Com Details e Precond) ---
 	const sceneRegex =
-		/scene\s+(\w+)\s*{\s*title:\s*"([^"]+)"(?:\s*details:\s*{\s*([^}]*)\s*})?\s*}/gs;
-	while ((match = sceneRegex.exec(code)) !== null) {
-		const [_, id, title, detailsRaw] = match;
-		const details: any = {};
+		/scene\s+(\w+)\s*{\s*title:\s*"([^"]+)"(?:\s*details:\s*{\s*([\s\S]*?)\s*}\s*})?\s*}/gs;
+
+	let sceneMatch;
+	while ((sceneMatch = sceneRegex.exec(code)) !== null) {
+		const [fullMatch, id, title, detailsRaw] = sceneMatch;
 		const savedPos = positionMap.get(id);
+		const items: SceneItem[] = [];
 
 		if (detailsRaw) {
-			const fields = ["u", "d", "du", "precond"];
-			fields.forEach((field) => {
-				const m = detailsRaw.match(
-					new RegExp(`${field}:\\s*["\`]([^"\`]*?)["\`](?:\\s|$)`),
-				);
-				if (m) details[field] = m[1].trim();
-			});
+			// Criamos o Regex de itens SEM a flag /g ou resetando ela
+			const itemRegex =
+				/([^{}\n(]+)(?:\s*\((?:precond:\s*)?([^)]+)\))?\s*{\s*([^}]*)\s*}/g;
+			let itemMatch;
+
+			// O segredo: processar o detailsRaw que pertence APENAS a esta cena
+			while ((itemMatch = itemRegex.exec(detailsRaw)) !== null) {
+				const [_, actionTitle, precond, dialogsRaw] = itemMatch;
+				const dialogs: any = {};
+
+				const dMatch = dialogsRaw.match(/d:\s*([^;}\n]+)/);
+				const uMatch = dialogsRaw.match(/u:\s*([^;}\n]+)/);
+				const duMatch = dialogsRaw.match(/d\+u:\s*([^;}\n]+)/);
+
+				if (dMatch) dialogs.d = dMatch[1].trim();
+				if (uMatch) dialogs.u = uMatch[1].trim();
+				if (duMatch) dialogs.du = duMatch[1].trim();
+
+				items.push({
+					title: actionTitle.trim(),
+					precond: precond ? precond.trim() : null,
+					dialogs,
+				});
+			}
 		}
 
 		nodes.push({
 			id,
 			type: "scene",
-			data: { title, details },
+			data: { title, items },
 			position: savedPos || getNextDefaultPos(),
 		});
 	}
@@ -109,7 +125,7 @@ export const parseMolic = (code: string, existingNodes: FlowNode[] = []) => {
 			id: `e-rec-${srcId}-${tgtId}-${label.replace(/\s+/g, "-")}`,
 			source: srcId,
 			target: tgtId,
-			type: "smoothstep", 
+			type: "smoothstep",
 			sourceHandle: srcP ? `s${srcP}` : "sb",
 			targetHandle: tgtP ? tgtP : "t",
 			label,
@@ -120,7 +136,16 @@ export const parseMolic = (code: string, existingNodes: FlowNode[] = []) => {
 			style: {
 				stroke: "var(--color-border-alt)",
 				strokeWidth: 1.5,
-				strokeDasharray: "5,5", 
+				strokeDasharray: "5,5",
+			},
+			labelStyle: {
+				fill: "var(--color-text)",
+				fontSize: 12,
+			},
+			labelBgPadding: [4, 2],
+			labelBgStyle: {
+				fill: "var(--color-bg-alt)",
+				fillOpacity: 1,
 			},
 			markerEnd: {
 				type: MarkerType.ArrowClosed,
@@ -147,6 +172,15 @@ export const parseMolic = (code: string, existingNodes: FlowNode[] = []) => {
 			pathOptions: {
 				borderRadius: 16,
 				offset: 24,
+			},
+			labelStyle: {
+				fill: "var(--color-text)",
+				fontSize: 12,
+			},
+			labelBgPadding: [4, 2],
+			labelBgStyle: {
+				fill: "var(--color-bg-alt)",
+				fillOpacity: 1,
 			},
 			markerEnd: {
 				type: MarkerType.ArrowClosed,

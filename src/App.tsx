@@ -95,6 +95,7 @@ function App() {
               gap={12}  
               size={1} 
               variant={BackgroundVariant.Cross}
+              
             />
             <Controls />
           </ReactFlow>

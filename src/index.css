@@ -10,7 +10,7 @@
 
 :root.light {
 	--color-bg: oklch(0.993 0 0);
-	--color-bg-alt: oklch(0.982 0 0);
+	--color-bg-alt: oklch(0.961 0 0);
 	--color-bg-ubiq: oklch(0.818 0 0);
 	--color-text: oklch(0.162 0 0);
 	--color-text-alt: oklch(0.195 0 0);
@@ -19,8 +19,8 @@
 }
 
 :root.dark {
-	--color-bg: oklch(0.162 0 0);
-	--color-bg-alt: oklch(0.195 0 0);
+	--color-bg: oklch(0.195 0 0);
+	--color-bg-alt: oklch(0.162 0 0);
 	--color-bg-ubiq: oklch(0.549 0 0);
 	--color-text: oklch(0.982 0 0);
 	--color-text-alt: oklch(0.94 0 0);
@@ -130,7 +130,7 @@ header {
 	border: none;
 	border-radius: 0;
 	padding: 0;
-	display: block; 
+	display: block;
 	position: relative;
 }
 
@@ -144,13 +144,6 @@ header {
 	width: 100%;
 	height: 1px;
 	background-color: var(--color-border);
-}
-.node-content {
-	padding: 12px;
-	font-size: 0.75rem;
-	color: var(--color-text-alt);
-	text-align: left;
-	white-space: pre-wrap;
 }
 
 .molic-node.scene.with-content {
@@ -203,7 +196,6 @@ header {
 }
 
 .detail-item {
-	margin-bottom: 4px;
 	line-height: 1.2;
 }
 
@@ -222,5 +214,59 @@ header {
 }
 
 .molic-node.ubiq .react-flow__handle {
-  background-color: var(--color-text-alt);
+	background-color: var(--color-text-alt);
+}
+
+.scene-item {
+	border-bottom: 1px solid var(--color-border-alt);
+	padding-bottom: 8px;
+}
+
+.scene-item:last-child {
+	padding-bottom: 0;
+	border-bottom: none;
+}
+
+.item-title-row {
+	display: inline-flex;
+	flex-direction: column;
+	margin-bottom: 4px;
+}
+
+.item-action {
+	font-weight: 600;
+	color: var(--color-text);
+}
+
+.precond-chip {
+	background: var(--color-bg-alt);
+	color: var(--color-text);
+	font-size: 0.65rem;
+	padding: 0 2px;
+}
+
+.item-dialogs .line {
+	font-size: 0.7rem;
+	margin-left: 12px;
+	color: var(--color-text-alt);
+}
+
+.line > strong {
+	color: var(--color-text);
+	font-family: monospace;
+	background: var(--color-bg-alt);
+	padding: 0 4px;
+	border-radius: 3px;
+}
+
+.node-content {
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-height: 24px;
+}
+
+.scene-item {
+	text-align: left;
 }
