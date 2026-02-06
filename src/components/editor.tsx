@@ -1,7 +1,11 @@
 import { Editor as MonacoEditor } from '@monaco-editor/react';
 import { useStore } from '../stores/useStore';
 
-const Editor = () => {
+interface EditorProps {
+  onChange: (value: string | undefined) => void;
+}
+
+const Editor = ({ onChange }: EditorProps) => {
   const { code, setCode, theme } = useStore();
 
   const getEditorTheme = () => {
