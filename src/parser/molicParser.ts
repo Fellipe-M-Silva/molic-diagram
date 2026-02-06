@@ -1,14 +1,15 @@
 import { type Node as FlowNode, type Edge, MarkerType } from "@xyflow/react";
 import type { SceneItem } from "../components/nodes/SceneNode";
 
-export const parseMolic = (code: string, existingNodes: FlowNode[] = []) => {
+export const parseMolic = (
+	code: string,
+	savedPositions: Record<string, { x: number; y: number }> = {},
+) => {
 	const nodes: FlowNode[] = [];
 	const edges: Edge[] = [];
 
 	// Cria um mapa para lembrar onde o usuário colocou os nós manualmente
-	const positionMap = new Map(
-		existingNodes.map((node) => [node.id, node.position]),
-	);
+	const positionMap = new Map(Object.entries(savedPositions));
 
 	let xPos = 48;
 
@@ -31,7 +32,7 @@ export const parseMolic = (code: string, existingNodes: FlowNode[] = []) => {
 			id,
 			type: "ubiq",
 			data: { label: label || "" },
-			position: savedPos || { x: xPos, y: yPosUbiquo },
+			position: positionMap.get(id) || { x: xPos, y: yPosUbiquo },
 		});
 
 		if (!savedPos) {
@@ -97,7 +98,7 @@ export const parseMolic = (code: string, existingNodes: FlowNode[] = []) => {
 			id,
 			type: "scene",
 			data: { title, items },
-			position: savedPos || getNextDefaultPos(),
+			position: positionMap.get(id) || getNextDefaultPos(),
 		});
 	}
 
@@ -112,7 +113,7 @@ export const parseMolic = (code: string, existingNodes: FlowNode[] = []) => {
 			id,
 			type: "process",
 			data: { label: label || "" },
-			position: savedPos || getNextDefaultPos(),
+			position: positionMap.get(id) || getNextDefaultPos(),
 		});
 	}
 

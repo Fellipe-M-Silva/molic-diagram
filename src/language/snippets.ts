@@ -29,4 +29,11 @@ export const molicSnippets = (monaco: any): languages.CompletionItem[] => [
 		documentation: "Transição normal (diálogo)",
 		range: undefined as any,
 	},
+	{
+		label: "note",
+		kind: monaco.languages.CompletionItemKind.Snippet,
+		insertText: "// ${1:Sua anotação aqui...}",
+		documentation: "Adiciona uma nota interna que não aparece no diagrama",
+		range: undefined as any,
+	},
 ];

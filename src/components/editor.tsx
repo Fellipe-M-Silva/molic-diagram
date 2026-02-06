@@ -37,11 +37,19 @@ const Editor = ({ onChange }: EditorProps) => {
     });
   };
 
+  const handleEditorDidMount = (editor: any) => {
+    // Impede que eventos de teclado "vazem" para o React Flow
+    editor.onKeyDown((e: any) => {
+      e.stopPropagation();
+    });
+  };
+
   return (
     <MonacoEditor
       height="100%"
       defaultLanguage="molic"
       beforeMount={handleBeforeMount}
+      onMount={handleEditorDidMount}
       value={code}
       theme={getEditorTheme()}
       onChange={(value) => setCode(value || '')}

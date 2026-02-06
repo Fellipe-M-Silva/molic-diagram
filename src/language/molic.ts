@@ -3,6 +3,8 @@ import { languages } from "monaco-editor";
 export const molicLanguageDef: languages.IMonarchLanguage = {
 	tokenizer: {
 		root: [
+			[/\/\/.*$/, "comment"],
+			
 			// Palavras-chave principais
 			[/\b(scene|ubiq|process|details|title)\b/, "keyword"],
 
