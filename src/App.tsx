@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { ReactFlow, Background, BackgroundVariant, ConnectionMode, Controls, type NodeTypes, useNodesState, useEdgesState, type Node, type Edge, type ColorMode, ReactFlowProvider, useReactFlow } from '@xyflow/react';
+import { useCallback, useEffect } from 'react';
+import { ReactFlow, Background, BackgroundVariant, ConnectionMode, Controls, type NodeTypes, useNodesState, useEdgesState, type Node, type Edge, type ColorMode, ReactFlowProvider, useReactFlow, reconnectEdge } from '@xyflow/react';
 import { DesktopIcon, MoonIcon, SunIcon } from '@phosphor-icons/react';
 import '@xyflow/react/dist/style.css';
 import './App.css'
@@ -21,6 +21,7 @@ function Flow() {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { setViewport, fitView } = useReactFlow(); // Agora funciona!
+  const { edgeConfigs, updateEdgeConfig } = useStore();
   
   const { 
     code, setCode, theme, setTheme, 
@@ -29,10 +30,12 @@ function Flow() {
 
   // 1. Parser: Roda quando o código ou as posições salvas mudam
   useEffect(() => {
-    const { nodes: newNodes, edges: newEdges } = parseMolic(code, nodePositions);
-    setNodes(newNodes);
-    setEdges(newEdges);
-  }, [code, nodePositions, setNodes, setEdges]);
+  // Passamos code, nodePositions E edgeConfigs para o parser
+  const { nodes: newNodes, edges: newEdges } = parseMolic(code, nodePositions, edgeConfigs);
+  
+  setNodes(newNodes);
+  setEdges(newEdges);
+}, [code, nodePositions, edgeConfigs, setNodes, setEdges]);
 
   // 2. Restaurar Câmera: Roda uma vez ao carregar
   useEffect(() => {
@@ -67,6 +70,17 @@ function Flow() {
       updateNodePositions(nodes);
     }
   };
+
+  const onReconnect = (oldEdge: any, newConnection: Connection) => {
+  // 1. Atualiza visualmente (opcional, pois o parser rodará em seguida)
+  setEdges((els) => reconnectEdge(oldEdge, newConnection, els));
+  
+  // 2. Salva a nova configuração de "portas" no Store persistido
+  updateEdgeConfig(oldEdge.id, {
+    sourceHandle: newConnection.sourceHandle,
+    targetHandle: newConnection.targetHandle
+  });
+};
 
   const themeIcons = {
     light: <SunIcon size={16} weight={theme === 'light' ? "fill" : "bold"} />,
@@ -106,6 +120,12 @@ function Flow() {
             onNodesChange={handleNodesChange}
             onEdgesChange={onEdgesChange}
             onMoveEnd={(_, vp) => useStore.getState().setViewport(vp)}
+            onReconnect={onReconnect} 
+            preventScrolling={true} 
+            zoomOnScroll={true}
+            deleteKeyCode={null}
+            selectionKeyCode={null} 
+            multiSelectionKeyCode={null} 
             connectionMode={ConnectionMode.Loose}
             colorMode={activeColorMode}
             snapToGrid={true}

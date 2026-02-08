@@ -1,9 +1,11 @@
 import { type Node as FlowNode, type Edge, MarkerType } from "@xyflow/react";
 import type { SceneItem } from "../components/nodes/SceneNode";
+import type { EdgeConfig } from "../stores/useStore";
 
 export const parseMolic = (
 	code: string,
 	savedPositions: Record<string, { x: number; y: number }> = {},
+	edgeConfigs: Record<string, EdgeConfig> = {},
 ) => {
 	const nodes: FlowNode[] = [];
 	const edges: Edge[] = [];
@@ -24,15 +26,16 @@ export const parseMolic = (
 
 	// --- 1. UBÍQUOS (Linha do Topo) ---
 	const ubiqRegex = /ubiq\s+(\w+)(?:\s*{\s*(?:label:\s*"([^"]+)")?\s*})?/g;
+
 	while ((match = ubiqRegex.exec(code)) !== null) {
 		const [_, id, label] = match;
-		const savedPos = positionMap.get(id);
+		const savedPos = positionMap.get(id); // Defina savedPos aqui
 
 		nodes.push({
 			id,
 			type: "ubiq",
 			data: { label: label || "" },
-			position: positionMap.get(id) || { x: xPos, y: yPosUbiquo },
+			position: savedPos || { x: xPos, y: yPosUbiquo },
 		});
 
 		if (!savedPos) {
@@ -63,25 +66,22 @@ export const parseMolic = (
 
 	let sceneMatch;
 	while ((sceneMatch = sceneRegex.exec(code)) !== null) {
-		const [fullMatch, id, title, detailsRaw] = sceneMatch;
-		const savedPos = positionMap.get(id);
-		const items: SceneItem[] = [];
+		// O primeiro elemento [0] é o match completo, por isso começamos do [1]
+		const id = sceneMatch[1];
+		const title = sceneMatch[2];
+		const detailsRaw = sceneMatch[3];
 
+		const items: SceneItem[] = [];
 		if (detailsRaw) {
-			// Criamos o Regex de itens SEM a flag /g ou resetando ela
 			const itemRegex =
 				/([^{}\n(]+)(?:\s*\((?:precond:\s*)?([^)]+)\))?\s*{\s*([^}]*)\s*}/g;
 			let itemMatch;
-
-			// O segredo: processar o detailsRaw que pertence APENAS a esta cena
 			while ((itemMatch = itemRegex.exec(detailsRaw)) !== null) {
 				const [_, actionTitle, precond, dialogsRaw] = itemMatch;
 				const dialogs: any = {};
-
 				const dMatch = dialogsRaw.match(/d:\s*([^;}\n]+)/);
 				const uMatch = dialogsRaw.match(/u:\s*([^;}\n]+)/);
 				const duMatch = dialogsRaw.match(/d\+u:\s*([^;}\n]+)/);
-
 				if (dMatch) dialogs.d = dMatch[1].trim();
 				if (uMatch) dialogs.u = uMatch[1].trim();
 				if (duMatch) dialogs.du = duMatch[1].trim();
@@ -107,7 +107,6 @@ export const parseMolic = (
 		/process\s+(\w+)(?:\s*{\s*(?:label:\s*"([^"]+)")?\s*})?/g;
 	while ((match = processRegex.exec(code)) !== null) {
 		const [_, id, label] = match;
-		const savedPos = positionMap.get(id);
 
 		nodes.push({
 			id,
@@ -118,27 +117,20 @@ export const parseMolic = (
 	}
 
 	// --- 4. TRANSIÇÕES DE RECUPERAÇÃO (->>) ---
-	const recoveryRegex =
-		/(\w+)(?::(\w+))?\s*->>\s*(\w+)(?::(\w+))?\s*{\s*label:\s*"([^"]+)"\s*}/g;
+	const recoveryRegex = /(\w+)\s*->>\s*(\w+)\s*{\s*label:\s*"([^"]+)"\s*}/g;
 	while ((match = recoveryRegex.exec(code)) !== null) {
-		const [_, srcId, srcP, tgtId, tgtP, label] = match;
-		const recoveryEdge: SmoothStepEdge = {
-			id: `e-rec-${srcId}-${tgtId}-${label.replace(/\s+/g, "-")}`,
+		const [_, srcId, tgtId, label] = match;
+		const edgeId = `e-rec-${srcId}-${tgtId}-${label.replace(/\s+/g, "-")}`;
+		const savedConfig = edgeConfigs[edgeId];
+
+		edges.push({
+			id: edgeId,
 			source: srcId,
 			target: tgtId,
 			type: "smoothstep",
-			sourceHandle: srcP ? `s${srcP}` : "sb",
-			targetHandle: tgtP ? tgtP : "t",
+			sourceHandle: savedConfig?.sourceHandle || "sb",
+			targetHandle: savedConfig?.targetHandle || "t",
 			label,
-			pathOptions: {
-				borderRadius: 16,
-				offset: 24,
-			},
-			style: {
-				stroke: "var(--color-border-alt)",
-				strokeWidth: 1.5,
-				strokeDasharray: "5,5",
-			},
 			labelStyle: {
 				fill: "var(--color-text)",
 				fontSize: 12,
@@ -147,33 +139,38 @@ export const parseMolic = (
 			labelBgStyle: {
 				fill: "var(--color-bg-alt)",
 				fillOpacity: 1,
+				zIndex: 10,
+			},
+			pathOptions: { borderRadius: 16, offset: 24 },
+			style: {
+				stroke: "var(--color-border-alt)",
+				strokeWidth: 1,
+				strokeDasharray: "5,5",
 			},
 			markerEnd: {
 				type: MarkerType.ArrowClosed,
 				color: "var(--color-border-alt)",
 			},
-		};
-
-		edges.push(recoveryEdge);
+		});
 	}
 
 	// --- 5. TRANSIÇÕES NORMAIS (->) ---
 	const transitionRegex =
-		/(\w+)(?::(\w+))?\s*->(?![>])\s*(\w+)(?::(\w+))?\s*{\s*label:\s*"([^"]+)"\s*}/g;
-	while ((match = transitionRegex.exec(code)) !== null) {
-		const [_, srcId, srcP, tgtId, tgtP, label] = match;
-		const newEdge: SmoothStepEdge = {
-			id: `e-${srcId}-${tgtId}-${label.replace(/\s+/g, "-")}`,
+		/(\w+)\s*->(?![>])\s*(\w+)\s*{\s*label:\s*"([^"]+)"\s*}/g;
+	let tMatch;
+	while ((tMatch = transitionRegex.exec(code)) !== null) {
+		const [_, srcId, tgtId, label] = tMatch;
+		const edgeId = `e-${srcId}-${tgtId}-${label.replace(/\s+/g, "-")}`;
+		const savedConfig = edgeConfigs[edgeId];
+
+		edges.push({
+			id: edgeId,
 			source: srcId,
 			target: tgtId,
+			sourceHandle: savedConfig?.sourceHandle || "sb",
+			targetHandle: savedConfig?.targetHandle || "t",
 			type: "smoothstep",
-			sourceHandle: srcP ? `s${srcP}` : "sb",
-			targetHandle: tgtP ? tgtP : "t",
-			label,
-			pathOptions: {
-				borderRadius: 16,
-				offset: 24,
-			},
+			label: label,
 			labelStyle: {
 				fill: "var(--color-text)",
 				fontSize: 12,
@@ -187,10 +184,8 @@ export const parseMolic = (
 				type: MarkerType.ArrowClosed,
 				color: "var(--color-text)",
 			},
-			style: { stroke: "var(--color-text)", strokeWidth: 1.5 },
-		};
-
-		edges.push(newEdge);
+			style: { stroke: "var(--color-text)", strokeWidth: 1 },
+		});
 	}
 
 	return { nodes, edges };

@@ -40,7 +40,7 @@ const Editor = ({ onChange }: EditorProps) => {
   const handleEditorDidMount = (editor: any) => {
     // Impede que eventos de teclado "vazem" para o React Flow
     editor.onKeyDown((e: any) => {
-      e.stopPropagation();
+      
     });
   };
 
@@ -62,6 +62,7 @@ const Editor = ({ onChange }: EditorProps) => {
         wordWrap: 'on', 
         wrappingStrategy: 'advanced',
         wrappingIndent: 'indent',
+        
       }}
     />
   );
